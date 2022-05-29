@@ -43,7 +43,6 @@ def get_window(source: str) -> None:
     #close region choice window if exists
     try:
         driver.find_element(by = By.XPATH, value = '/html/body/div[4]/div/div[1]/header/button').click()
-        print("clicked")
     except selenium.common.exceptions.NoSuchElementException:
         pass
     sleep(1)
@@ -140,12 +139,15 @@ def get_prod_info(source: BeautifulSoup, url: str) -> dict:
         material = None
 
     if name == None:
-        print("no name here", url)
+        print("Unexpected error in", url)
 
     return {"ID" : id, "Name" : name, "Price" : price,  "Brand" : brand, 
             "Sizes_amount" : sizes, "Country" : country, "Material" : material, "URL" : url}
 
 def download_info(source: list) -> pd.DataFrame:
+    
+    #remove duplicates from list
+    source = list(set(source))
 
     #initial df
     df = pd.DataFrame(columns = ["ID", "Name", "Price", "Brand", 
@@ -173,7 +175,7 @@ def df_formatting(df: pd.DataFrame) -> None:
 def main():
 
     if len(sys.argv) == 1:
-        target_url = "https://street-beat.ru/cat/woman/obuv/?price_max=10000"
+        target_url = "https://street-beat.ru/cat"
     else:
         sys.argv.pop(0)
         argument = "%20".join(sys.argv)
