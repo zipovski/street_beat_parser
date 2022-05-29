@@ -14,9 +14,7 @@ from datetime import datetime
 import sys
 warnings.filterwarnings("ignore")
 
-def selenium_config() -> None:
-
-    global driver
+def selenium_config() -> webdriver:
 
     #regualar driver settings
     options = webdriver.ChromeOptions()
@@ -24,7 +22,6 @@ def selenium_config() -> None:
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     options.add_experimental_option('useAutomationExtension', False)
-
 
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
     #execute script on every page load (Chrome Devtools Protocol)
@@ -35,8 +32,10 @@ def selenium_config() -> None:
             "delete newProto.webdriver;"
             "navigator.__proto__ = newProto;"
         })
+    
+    return driver
 
-def get_window(source: str) -> None:
+def get_window(source: str, driver: webdriver) -> None:
 
     driver.get(source)
     sleep(3)
@@ -47,7 +46,7 @@ def get_window(source: str) -> None:
         pass
     sleep(1)
 
-def whole_page_load() -> str:
+def whole_page_load(driver) -> str:
 
     scroll_bottom = "window.scrollTo(0, document.body.scrollHeight - document.body.scrollHeight*0.2)"
     scroll_top = "window.scrollTo(0, 0)"
@@ -67,9 +66,9 @@ def whole_page_load() -> str:
     
     return driver.page_source
 
-def get_products() -> list:
+def get_products(driver: webdriver) -> list:
 
-    bs = whole_page_load()
+    bs = whole_page_load(driver)
     source = BeautifulSoup(bs, "lxml")
     #find all product links
     prods = source.find_all("div", {"class" : "product-card product-card--hoverable"})
@@ -144,7 +143,7 @@ def get_prod_info(source: BeautifulSoup, url: str) -> dict:
     return {"ID" : id, "Name" : name, "Price" : price,  "Brand" : brand, 
             "Sizes_amount" : sizes, "Country" : country, "Material" : material, "URL" : url}
 
-def download_info(source: list) -> pd.DataFrame:
+def download_info(source: list, driver: webdriver) -> pd.DataFrame:
     
     #remove duplicates from list
     source = list(set(source))
@@ -181,11 +180,12 @@ def main():
         argument = "%20".join(sys.argv)
         target_url = f'https://street-beat.ru/cat/?q={argument}'
 
-    selenium_config()
-    get_window(source = target_url)
-    prods = get_products()
-    prod_dataframe = download_info(prods)
+    driver = selenium_config()
+    get_window(source = target_url, driver = driver)
+    prods = get_products(driver = driver)
+    prod_dataframe = download_info(prods, driver = driver)
     df_formatting(prod_dataframe)
+    driver.quit()
 
 if __name__ == "__main__":
     main()
