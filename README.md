@@ -17,4 +17,12 @@ To scrape content based on keyword:
 ```bash
 python3 sb_parser.py converse кеды
 ```
-
+## To be fixed
+### Problem
+502 Bad Gateway sometimes occurs
+### Probable solution
+Proxies?
+### Problem
+Duplicates occur in parsed links
+### Probable solution
+Selectors fix
